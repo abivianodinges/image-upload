@@ -15,6 +15,13 @@ def upload_file():
         return predict_image(file)
 
 
+@app.route('/violence', methods=['POST'])
+def upload_file_violence():
+    file = request.files['file']
+    
+    if file:
+        return predict_violence(file)
+
 @app.route('/upload', methods=['POST'])
 def upload_file_violence():
     file = request.files['file']
