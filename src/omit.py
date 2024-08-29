@@ -47,7 +47,7 @@ def predict_image(jpeg_image):
     return(classes[predicted.item()])
 
 
-classes = [
+classes_violence = [
         "Violence",
         "NonViolence"
     ]
@@ -62,7 +62,7 @@ def predict_violence(jpeg_image):
             self.conv2 = nn.Conv2d(6, 16, 5)
             self.fc1 = nn.Linear(16 * 53 * 53, 120)
             self.fc2 = nn.Linear(120, 84)
-            self.fc3 = nn.Linear(84, len(classes))
+            self.fc3 = nn.Linear(84, len(classes_violence))
 
         def forward(self, x):
             x = self.pool(F.relu(self.conv1(x)))
@@ -100,4 +100,4 @@ def predict_violence(jpeg_image):
     _, predicted = torch.max(output.data, 1)
     
     # Make the prediction
-    return(classes[predicted.item()])
+    return(classes_violence[predicted.item()])
