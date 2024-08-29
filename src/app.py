@@ -27,7 +27,8 @@ def upload_file_violence():
     file = request.files['file']
     
     if file:
-        return predict_violence(file)
+        tag_list = [predict_image(file), predict_violence(file)]
+        return ''.join(f'<a>{tag}</a>' for tag in tag_list)
 
 if __name__ == '__main__':
     app.run(debug=True)
