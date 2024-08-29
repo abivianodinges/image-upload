@@ -16,7 +16,7 @@ def upload_file():
 
 
 @app.route('/violence', methods=['POST'])
-def upload_file_violence():
+def upload_file_test():
     file = request.files['file']
     
     if file:
