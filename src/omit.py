@@ -1,84 +1,103 @@
 import torchvision.transforms as transforms
-from torch.utils.data import DataLoader
 from PIL import Image
 import torch
-
-from utils.pytorch_training_utils import NeuralNetwork, test_loop, train_loop
-from utils.pytorch_dataset_utils import CustomImageDataset
 from utils.config import *
+import torch.nn as nn
+import torch.nn.functional as F
 
-
-def data_init():
-    dataset = CustomImageDataset(img_dir='data/custom_dataset')
-
-    # Determine the sizes for train and test splits
-    dataset_size = len(dataset)
-    train_size = int(0.7 * dataset_size)  # 70% for training
-    test_size = dataset_size - train_size  # Remaining 30% for testing
-
-    train_data, test_data = torch.utils.data.random_split(
-        dataset, [train_size, test_size]
-    )
-
-    train_dataloader = DataLoader(
-        dataset=train_data, batch_size=batch_size, shuffle=True
-    )
-    test_dataloader = DataLoader(dataset=test_data, batch_size=batch_size, shuffle=True)
-
-    return train_dataloader, test_dataloader
-
-
-def train_model(retrain=False):
-    # Get testing and training data
-    train_dataloader, test_dataloader = data_init()
-
-    # Load in premade or Create new model
-    model = torch.load(model_path) if retrain else NeuralNetwork()
-
-    # Set to GPU processing
-    model.to(device)
-
-    # Creates a criterion that measures the mean absolute error (MAE)
-    loss_fn = torch.nn.CrossEntropyLoss()
-
-    # Optimizer object which holds the current state
-    # & will update the parameters based on the computed gradients
-    optimizer = torch.optim.SGD(model.parameters(), lr=learning_rate)
-
-    # Per epoch, refine model
-    for t in range(epochs):
-        print(f'Epoch {t+1}\n-------------------------------')
-        train_loop(train_dataloader, model, loss_fn, optimizer, device)
-        test_loop(test_dataloader, model, loss_fn, device)
-
-    torch.save(model, model_path)
-
-    print('Training Complete!')
-
+classes = [
+        "Mantled Howler",
+        "Patas Monkey",
+        "Bald Ukari",
+        "Japanese Macaque",
+        "Pygmy Marmoset",
+        "White Headed Capuchin",
+        "Silvery Marmoset",
+        "Common Squirrel Monkey",
+        "Black Headed Night Monkey",
+        "Nilgiri Langur"
+    ]
 
 def predict_image(jpeg_image):
     
     # Load the model and move it to the appropriate device
-    model = torch.load(model_path, map_location=device, weights_only=False)
-    model.to(device)
+    model = torch.load(model_path)
     model.eval()
     
+    mean = [0.4363, 0.4328, 0.3291]
+    std = [0.2129, 0.2075, 0.2038]
     # Define the transformation pipeline
     transform = transforms.Compose([
-        transforms.Grayscale(num_output_channels=1),
-        transforms.Resize((28, 28)),
+        transforms.Resize((220,220)),
         transforms.ToTensor(),
-        transforms.Normalize((0.5,), (0.5,))
+        transforms.Normalize(torch.Tensor(mean), torch.Tensor(std))
     ])
+
     
     # Open the image
-    image = Image.open(jpeg_image).convert('L')
-    image_tensor = transform(image).unsqueeze(0)
+    image = Image.open(jpeg_image)
+    image = transform(image).float()
+    image = image.unsqueeze(0)
     
     # Move the tensor to the same device as the model
-    image_tensor = image_tensor.to(device)
+    output = model(image)
+    _, predicted = torch.max(output.data, 1)
     
     # Make the prediction
-    with torch.no_grad():
-        output = model(image_tensor)
-        return labels_map[output[0].argmax(0).item()]
+    return(classes[predicted.item()])
+
+
+classes = [
+        "Violence",
+        "NonViolence"
+    ]
+
+
+def predict_violence(jpeg_image):
+    class Net(nn.Module):
+        def __init__(self):
+            super().__init__()
+            self.conv1 = nn.Conv2d(3, 6, 5)
+            self.pool = nn.MaxPool2d(2, 2)
+            self.conv2 = nn.Conv2d(6, 16, 5)
+            self.fc1 = nn.Linear(16 * 53 * 53, 120)
+            self.fc2 = nn.Linear(120, 84)
+            self.fc3 = nn.Linear(84, len(classes))
+
+        def forward(self, x):
+            x = self.pool(F.relu(self.conv1(x)))
+            x = self.pool(F.relu(self.conv2(x)))
+            x = torch.flatten(x, 1) # flatten all dimensions except batch
+            x = F.relu(self.fc1(x))
+            x = F.relu(self.fc2(x))
+            x = self.fc3(x)
+            return x
+    model = Net()
+
+    model.load_state_dict(torch.load(violence_model_path, map_location=device, weights_only=False))
+    
+    transform = transforms.Compose([
+        transforms.Resize(226),
+        transforms.CenterCrop(224),
+        transforms.RandomGrayscale(),
+        transforms.ToTensor(),
+        transforms.Normalize([0.485, 0.456, 0.406], [0.229, 0.224, 0.225])
+    ])
+
+    model = model.eval()
+    image = Image.open(jpeg_image)
+    image = transform(image).float()
+    image = image.unsqueeze(0)
+
+
+    # Open the image
+    image = Image.open(jpeg_image)
+    image = transform(image).float()
+    image = image.unsqueeze(0)
+    
+    # Move the tensor to the same device as the model
+    output = model(image)
+    _, predicted = torch.max(output.data, 1)
+    
+    # Make the prediction
+    return(classes[predicted.item()])

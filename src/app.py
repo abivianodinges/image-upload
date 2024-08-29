@@ -1,5 +1,5 @@
 from flask import Flask, render_template, request
-from omit import predict_image
+from omit import predict_image, predict_violence
 
 app = Flask(__name__)
 
@@ -7,13 +7,20 @@ app = Flask(__name__)
 def index():
     return render_template('index.html')
 
-@app.route('/upload', methods=['POST'])
+@app.route('/monkey', methods=['POST'])
 def upload_file():
     file = request.files['file']
     
     if file:
-        tag_list = [predict_image(file), 'item2', 'item3']
-        return ''.join(f'<a>{tag}</a>' for tag in tag_list)
+        return predict_image(file)
+
+
+@app.route('/upload', methods=['POST'])
+def upload_file_violence():
+    file = request.files['file']
+    
+    if file:
+        return predict_violence(file)
 
 if __name__ == '__main__':
     app.run(debug=True)

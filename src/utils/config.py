@@ -1,6 +1,7 @@
 import torch
 
-model_path = 'data/omit_model.pth'
+model_path = 'data/best_model.pth'
+violence_model_path = 'data/violence_model.pt'
 training_data_path = 'data/custom_dataset'
 
 learning_rate = 1e-3
