@@ -1,7 +1,8 @@
 import torch
 
 model_path = 'data/best_model.pth'
-violence_model_path = 'data/violence_model.pt'
+dog_model_path = 'data/dogModel.pt'
+dog_model_state_path = 'data/dogModelState.pt'
 training_data_path = 'data/custom_dataset'
 
 learning_rate = 1e-3

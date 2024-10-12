@@ -47,22 +47,22 @@ def predict_image(jpeg_image):
     return(classes[predicted.item()])
 
 
-classes_violence = [
-        "Violence",
-        "NonViolence"
+classes_dog = [
+        "dog",
+        "notDog"
     ]
 
 
-def predict_violence(jpeg_image):
+def predict_dog(jpeg_image):
     class Net(nn.Module):
         def __init__(self):
             super().__init__()
             self.conv1 = nn.Conv2d(3, 6, 5)
             self.pool = nn.MaxPool2d(2, 2)
             self.conv2 = nn.Conv2d(6, 16, 5)
-            self.fc1 = nn.Linear(16 * 53 * 53, 120)
+            self.fc1 = nn.Linear(16 * 28 * 28, 120)
             self.fc2 = nn.Linear(120, 84)
-            self.fc3 = nn.Linear(84, len(classes_violence))
+            self.fc3 = nn.Linear(84, len(classes_dog))
 
         def forward(self, x):
             x = self.pool(F.relu(self.conv1(x)))
@@ -74,11 +74,11 @@ def predict_violence(jpeg_image):
             return x
     model = Net()
 
-    model.load_state_dict(torch.load(violence_model_path, map_location=device, weights_only=False))
+    model.load_state_dict(torch.load(dog_model_state_path, map_location=device, weights_only=False))
     
     transform = transforms.Compose([
-        transforms.Resize(226),
-        transforms.CenterCrop(224),
+        transforms.Resize(126),
+        transforms.CenterCrop(124),
         transforms.RandomGrayscale(),
         transforms.ToTensor(),
         transforms.Normalize([0.485, 0.456, 0.406], [0.229, 0.224, 0.225])
@@ -98,6 +98,6 @@ def predict_violence(jpeg_image):
     # Move the tensor to the same device as the model
     output = model(image)
     _, predicted = torch.max(output.data, 1)
-    
+
     # Make the prediction
-    return(classes_violence[predicted.item()])
+    return(classes_dog[predicted.item()])
