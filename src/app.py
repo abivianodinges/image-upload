@@ -66,7 +66,7 @@ def upload_file_dog():
             # Extract images from video
             extract_images_from_video(video_path, output_folder)
 
-            images = glob.glob('uploads/frames/*')
+            images = glob.glob(os.path.join('uploads', 'frames', '*'))
 
             tag_list = []
             for image in images:
@@ -77,7 +77,7 @@ def upload_file_dog():
 
             tag_list = [item for item in tag_list if item in classes + classes_dog ]
             # delete the temp folder
-            os.remove('uploads/frames')
+            os.remove(os.path.join('uploads', 'frames'))
             return ''.join(f'<a>{tag}</a>' for tag in tag_list)
 
         else:
