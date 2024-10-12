@@ -1,5 +1,5 @@
 from flask import Flask, render_template, request
-from omit import predict_image, predict_dog
+from omit import predict_image, predict_dog, predict_dog_but_be_sure_about_it, classes_dog, classes
 import os
 import cv2
 import glob
@@ -70,10 +70,12 @@ def upload_file_dog():
 
             tag_list = []
             for image in images:
-                tag_list +=[predict_image(image), predict_dog(image)]
+                tag_list +=[predict_image(image), predict_dog_but_be_sure_about_it(image)]
            
             tag_list = list(set(tag_list))
+            classes_dog = ["dog", "notDog"]
 
+            tag_list = [item for item in tag_list if item in classes + classes_dog ]
             # delete the temp folder
             os.remove('uploads/frames')
             return ''.join(f'<a>{tag}</a>' for tag in tag_list)

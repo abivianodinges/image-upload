@@ -101,3 +101,54 @@ def predict_dog(jpeg_image):
 
     # Make the prediction
     return(classes_dog[predicted.item()])
+
+def predict(model, image_tensor):
+    model.eval()
+    with torch.no_grad():
+        image_tensor = image_tensor.to(torch.device("cpu"))
+        outputs = model(image_tensor)
+        probabilities = torch.nn.functional.softmax(outputs, dim=1)
+    return probabilities.cpu().numpy().flatten()
+
+def predict_dog_but_be_sure_about_it(jpeg_image):
+    class Net(nn.Module):
+        def __init__(self):
+            super().__init__()
+            self.conv1 = nn.Conv2d(3, 6, 5)
+            self.pool = nn.MaxPool2d(2, 2)
+            self.conv2 = nn.Conv2d(6, 16, 5)
+            self.fc1 = nn.Linear(16 * 28 * 28, 120)
+            self.fc2 = nn.Linear(120, 84)
+            self.fc3 = nn.Linear(84, len(classes_dog))
+
+        def forward(self, x):
+            x = self.pool(F.relu(self.conv1(x)))
+            x = self.pool(F.relu(self.conv2(x)))
+            x = torch.flatten(x, 1) # flatten all dimensions except batch
+            x = F.relu(self.fc1(x))
+            x = F.relu(self.fc2(x))
+            x = self.fc3(x)
+            return x
+    model = Net()
+
+    model.load_state_dict(torch.load(dog_model_state_path, map_location=device, weights_only=False))
+    
+    transform = transforms.Compose([
+        transforms.Resize(126),
+        transforms.CenterCrop(124),
+        transforms.RandomGrayscale(),
+        transforms.ToTensor(),
+        transforms.Normalize([0.485, 0.456, 0.406], [0.229, 0.224, 0.225])
+    ])
+
+    # Open the image
+    image = Image.open(jpeg_image)
+    image = transform(image).float()
+    image = image.unsqueeze(0)
+    
+    probabilities = predict(model, image)
+
+    
+    for i, x in enumerate(classes_dog):
+            if(probabilities[i] > 0.90):
+                return x
