@@ -47,6 +47,36 @@ def predict_image(jpeg_image):
     return(classes[predicted.item()])
 
 
+def predict_image_but_be_sure_about_it(jpeg_image):
+    
+    # Load the model and move it to the appropriate device
+    model = torch.load(model_path)
+    model.eval()
+    
+    mean = [0.4363, 0.4328, 0.3291]
+    std = [0.2129, 0.2075, 0.2038]
+    # Define the transformation pipeline
+    transform = transforms.Compose([
+        transforms.Resize((220,220)),
+        transforms.ToTensor(),
+        transforms.Normalize(torch.Tensor(mean), torch.Tensor(std))
+    ])
+
+    
+    # Open the image
+    image = Image.open(jpeg_image)
+    image = transform(image).float()
+    image = image.unsqueeze(0)
+    
+    probabilities = predict(model, image)
+
+    
+    for i, x in enumerate(classes):
+            if(probabilities[i] > 0.50):
+                return x
+
+
+
 classes_dog = [
         "dog",
         "notDog"

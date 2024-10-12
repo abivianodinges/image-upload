@@ -1,5 +1,5 @@
 from flask import Flask, render_template, request
-from omit import predict_image, predict_dog, predict_dog_but_be_sure_about_it, classes_dog, classes
+from omit import predict_image, predict_dog, predict_dog_but_be_sure_about_it, classes_dog, classes, predict_image_but_be_sure_about_it
 import os
 import cv2
 import shutil
@@ -71,7 +71,7 @@ def upload_file_dog():
 
             tag_list = []
             for image in images:
-                tag_list +=[predict_image(image), predict_dog_but_be_sure_about_it(image)]
+                tag_list +=[predict_image_but_be_sure_about_it(image), predict_dog_but_be_sure_about_it(image)]
            
             tag_list = list(set(tag_list))
             classes_dog = ["dog", "notDog"]
