@@ -2,6 +2,7 @@ from flask import Flask, render_template, request
 from omit import predict_image, predict_dog, predict_dog_but_be_sure_about_it, classes_dog, classes
 import os
 import cv2
+import shutil
 import glob
 
 VIDEO_EXTENSIONS = {'mp4', 'avi', 'mov', 'mkv'}
@@ -77,7 +78,7 @@ def upload_file_dog():
 
             tag_list = [item for item in tag_list if item in classes + classes_dog ]
             # delete the temp folder
-            os.remove(os.path.join('uploads', 'frames'))
+            shutil.rmtree('uploads')
             return ''.join(f'<a>{tag}</a>' for tag in tag_list)
 
         else:
